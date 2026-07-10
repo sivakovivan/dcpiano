@@ -4,7 +4,8 @@ from pathlib import Path
 from dcpiano.logger import logger
 
 
-
+from dcpiano.services.config import ConfigService
+from dcpiano.services.video import VideoService
 
 
 def create_output_directory(output_dir):
@@ -23,3 +24,12 @@ class DCPPipeline:
         logger.info("Starting DCPiano pipeline...")
         logger.info(f"Input video: {input_video}")
         logger.info(f"Output directory: {output_dir}")
+        
+        config = ConfigService.load_config()
+        logger.info(f"Loaded configuration: {config}")
+        
+        video_metadata = VideoService.get_video_metadata(input_video)
+        logger.info(f"Input video metadata: {video_metadata}")
+        
+        frames = VideoService.get_video_frames(input_video)
+        logger.info(f"Extracted {len(frames)} frames from the video.")

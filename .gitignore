@@ -1,3 +1,10 @@
+# DCPiano
+data/input/*
+data/output/*
+!data/input/.gitkeep
+!data/output/.gitkeep
+
+
 # Insta snapshots.
 *.pending-snap
 

@@ -1,14 +1,30 @@
 from dataclasses import dataclass
+from enum import Enum
 
 from dcpiano.types.video import FrameMetadata
+
+
+@dataclass
+class Side(Enum):
+    LEFT = "left"
+    RIGHT = "right"
+    UNKNOWN = "unknown"
 
 
 @dataclass
 class RawLandmark:
     name: str
     source: str
-    x_px: float
-    y_px: float
+    
+    instance_id: int
+    
+    side: Side
+    
+    x: float
+    y: float
+    z: float | None
+    
+    confidence: float | None = None
 
 
 @dataclass

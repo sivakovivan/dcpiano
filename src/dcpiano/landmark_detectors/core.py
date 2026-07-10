@@ -11,9 +11,5 @@ class LandmarkDetector(ABC):
         pass
     
     @abstractmethod
-    def load_model(self) -> None:
-        ...
-    
-    @abstractmethod
     def detect(self, frame: VideoFrame) -> list[RawLandmark]:
         ...

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from dcpiano.types.video import FrameMetadata
 
 
 @dataclass
-class Side(Enum):
+class Side(StrEnum):
     LEFT = "left"
     RIGHT = "right"
     UNKNOWN = "unknown"

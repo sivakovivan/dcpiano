@@ -1,8 +1,15 @@
-from enum import StrEnum
+from __future__ import annotations
+
+from typing import Any
 from dataclasses import dataclass
+from enum import StrEnum
+from pathlib import Path
+
+import mediapipe as mp
+import numpy as np
 
 from dcpiano.landmark_detectors.core import LandmarkDetector
-from dcpiano.types.landmark import RawLandmark
+from dcpiano.types.landmark import RawLandmark, Side
 from dcpiano.types.video import VideoFrame
 
 
@@ -28,21 +35,157 @@ class HandLandmarks(StrEnum):
     PINKY_PIP = "PINKY_PIP"
     PINKY_DIP = "PINKY_DIP"
     PINKY_TIP = "PINKY_TIP"
-    
-    
-@dataclass
+
+
+@dataclass(slots=True)
 class HandLandmarkConfig:
+    model_path: Path = Path("models/hand_landmarker.task")
     max_hands: int = 2
     min_detection_confidence: float = 0.5
+    min_hand_presence_confidence: float = 0.5
     min_tracking_confidence: float = 0.5
-    static_image_mode: bool = False
-    
+
 
 class HandLandmarkDetector(LandmarkDetector):
+    """MediaPipe Tasks hand detector operating in VIDEO mode.
+
+    Keep one detector instance alive for all consecutive frames from a video.
+    `FrameMetadata.timestamp` is assumed to be expressed in seconds.
+    """
+
     name = "HandLandmarkDetector"
-    
-    def __init__(self, config: HandLandmarkConfig, landmarks: HandLandmarks) -> None:
-        pass
-    
+    _LANDMARK_INDEX_TO_NAME = tuple(HandLandmarks)
+
+    def __init__(self, config: HandLandmarkConfig | None = None) -> None:
+        self.config = config or HandLandmarkConfig()
+        self.landmarks = tuple(HandLandmarks)
+        self._landmark_filter = {landmark.value for landmark in self.landmarks}
+        self._last_timestamp_ms = -1
+        self._detector = self._create_detector()
+
+    def _create_detector(self) -> Any:
+        options = mp.tasks.vision.HandLandmarkerOptions(
+            base_options=mp.tasks.BaseOptions(
+                model_asset_path=str(self.config.model_path),
+            ),
+            running_mode=mp.tasks.vision.RunningMode.VIDEO,
+            num_hands=self.config.max_hands,
+            min_hand_detection_confidence=self.config.min_detection_confidence,
+            min_hand_presence_confidence=self.config.min_hand_presence_confidence,
+            min_tracking_confidence=self.config.min_tracking_confidence,
+        )
+        return mp.tasks.vision.HandLandmarker.create_from_options(options)
+
+    def reset_video(self) -> None:
+        """Clear tracking state before processing a different video/clip."""
+        self._detector.close()
+        self._detector = self._create_detector()
+        self._last_timestamp_ms = -1
+
     def detect(self, frame: VideoFrame) -> list[RawLandmark]:
-        pass
+        timestamp_ms = self._timestamp_ms(frame)
+        rgb_frame = np.ascontiguousarray(frame.frame[..., ::-1])
+
+        mp_image = mp.Image(
+            image_format=mp.ImageFormat.SRGB,
+            data=rgb_frame,
+        )
+
+        results = self._detector.detect_for_video(
+            mp_image,
+            timestamp_ms,
+        )
+
+        return self._convert_results(results)
+
+    def detect_video(
+        self,
+        frames: list[VideoFrame],
+        reset: bool = True,
+    ) -> list[list[RawLandmark]]:
+        """Process consecutive video frames while retaining tracking state."""
+        if reset:
+            self.reset_video()
+        return [self.detect(frame) for frame in frames]
+
+    def _timestamp_ms(self, frame: VideoFrame) -> int:
+        timestamp_seconds = float(frame.metadata.timestamp)
+        if timestamp_seconds < 0:
+            raise ValueError(
+                f"Frame {frame.metadata.index} has a negative timestamp: "
+                f"{timestamp_seconds}"
+            )
+
+        timestamp_ms = round(timestamp_seconds * 1000.0)
+        if timestamp_ms <= self._last_timestamp_ms:
+            # Rounding or duplicate source timestamps must not violate the Tasks API.
+            timestamp_ms = self._last_timestamp_ms + 1
+
+        self._last_timestamp_ms = timestamp_ms
+        return timestamp_ms
+
+    def _convert_results(self, results: object) -> list[RawLandmark]:
+        hand_landmarks = results.hand_landmarks
+        if not hand_landmarks:
+            return []
+
+        raw_landmarks: list[RawLandmark] = []
+        for instance_id, landmarks in enumerate(hand_landmarks):
+            side = self._resolve_side(results.handedness, instance_id)
+            confidence = self._resolve_confidence(results.handedness, instance_id)
+
+            for landmark_index, landmark in enumerate(landmarks):
+                landmark_name = self._LANDMARK_INDEX_TO_NAME[landmark_index].value
+                if landmark_name not in self._landmark_filter:
+                    continue
+
+                raw_landmarks.append(
+                    RawLandmark(
+                        name=landmark_name,
+                        source=self.name,
+                        instance_id=instance_id,
+                        side=side,
+                        x=landmark.x,
+                        y=landmark.y,
+                        z=landmark.z,
+                        confidence=confidence,
+                    )
+                )
+
+        return raw_landmarks
+
+    def close(self) -> None:
+        self._detector.close()
+
+    def __enter__(self) -> HandLandmarkDetector:
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        self.close()
+
+    @staticmethod
+    def _resolve_side(handedness: object, instance_id: int) -> Side:
+        if instance_id >= len(handedness):
+            return Side.UNKNOWN
+
+        categories = handedness[instance_id]
+        if not categories:
+            return Side.UNKNOWN
+
+        label = (categories[0].category_name or "").lower()
+        if label == Side.LEFT.value:
+            return Side.LEFT
+        if label == Side.RIGHT.value:
+            return Side.RIGHT
+        return Side.UNKNOWN
+
+    @staticmethod
+    def _resolve_confidence(handedness: object, instance_id: int) -> float | None:
+        if instance_id >= len(handedness):
+            return None
+
+        categories = handedness[instance_id]
+        if not categories:
+            return None
+
+        return categories[0].score

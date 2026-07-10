@@ -6,6 +6,7 @@ from dcpiano.logger import logger
 
 
 from dcpiano.services.config import ConfigService
+from dcpiano.services.landmark import LandmarkService
 from dcpiano.services.calibration import CalibrationService
 from dcpiano.services.video import VideoService
 
@@ -44,6 +45,19 @@ class DCPPipeline:
     
         logger.info(f"Keyboard calibration result: {keyboard_calibration}")
         
-        detectors = [HandLandmarkDetector]
+        detectors = [
+            HandLandmarkDetector()
+        ]
         
         logger.info(f"Initialized landmark detectors: {[detector.name for detector in detectors]}")
+        
+        landmark_service = LandmarkService(detectors)
+        
+        try:
+            landmark_frames = landmark_service.generate_landmark_frames(frames, output_dir, reset_detectors=False)
+        finally:
+            landmark_service.close()
+            
+        logger.info(
+            f"Generated {len(landmark_frames)} landmark frames."
+        )

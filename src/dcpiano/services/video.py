@@ -21,6 +21,20 @@ class VideoService:
         return VideoMetadata(width=width, height=height, path=path, fps=fps, duration=duration)
     
     @staticmethod
+    def _validate_frame(frame: VideoFrame) -> None:
+        if frame.metadata.timestamp < 0:
+            raise ValueError(
+                f"Frame {frame.metadata.index} has a negative timestamp: "
+                f"{frame.metadata.timestamp}"
+            )
+            
+        if frame.frame.size == 0:
+            raise ValueError(f"Frame {frame.metadata.index} has no pixel data.")
+        
+        if frame.frame.ndim != 3 or frame.frame.shape[2] != 3:
+            raise ValueError(f"Frame {frame.metadata.index} is not a valid color image (expected 3 channels).")
+    
+    @staticmethod
     def get_video_frames(path: Path) -> list[VideoFrame]:
         cap = cv2.VideoCapture(str(path))
         if not cap.isOpened():
@@ -38,6 +52,8 @@ class VideoService:
             timestamp = index / fps if fps > 0 else 0
             frames.append(VideoFrame(metadata=FrameMetadata(index=index, timestamp=timestamp), frame=frame))
             index += 1
+            
+        VideoService._validate_frame(frames[0])
 
         cap.release()
         return frames

@@ -4,6 +4,8 @@ data/output/*
 !data/input/.gitkeep
 !data/output/.gitkeep
 
+models/*
+!models/.gitkeep
 
 # Insta snapshots.
 *.pending-snap

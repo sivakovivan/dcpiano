@@ -8,8 +8,19 @@ class LandmarkDetector(ABC):
     @property
     @abstractmethod
     def name(self) -> str:
-        pass
+        ...
+
+    def init(self) -> None:
+        ...
+    
+    @abstractmethod
+    def reset_video(self) -> None:
+        ...
     
     @abstractmethod
     def detect(self, frame: VideoFrame) -> list[RawLandmark]:
+        ...
+
+    @abstractmethod
+    def close(self) -> None:
         ...

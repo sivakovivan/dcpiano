@@ -5,6 +5,7 @@ from dcpiano.logger import logger
 
 
 from dcpiano.services.config import ConfigService
+from dcpiano.services.calibration import CalibrationService
 from dcpiano.services.video import VideoService
 
 
@@ -33,3 +34,11 @@ class DCPPipeline:
         
         frames = VideoService.get_video_frames(input_video)
         logger.info(f"Extracted {len(frames)} frames from the video.")
+        
+        calibration_frame = frames[0]
+        
+        logger.info("Starting manual calibration process...")
+        
+        keyboard_calibration = CalibrationService.run_manual_keyboard_calibration(calibration_frame, config, output_dir)
+    
+        logger.info(f"Keyboard calibration result: {keyboard_calibration}")

@@ -16,4 +16,4 @@ class VideoMetadata:
 class VideoFrame:
     index: int
     timestamp: float
-    image: np.ndarray
+    frame: np.ndarray

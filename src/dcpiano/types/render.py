@@ -1,0 +1,1 @@
+Connection = tuple[str, str]

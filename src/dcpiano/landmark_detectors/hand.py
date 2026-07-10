@@ -9,6 +9,7 @@ import mediapipe as mp
 import numpy as np
 
 from dcpiano.landmark_detectors.core import LandmarkDetector
+from dcpiano.types.render import Connection
 from dcpiano.types.landmark import RawLandmark, Side
 from dcpiano.types.video import VideoFrame
 
@@ -46,6 +47,33 @@ class HandLandmarkConfig:
     min_tracking_confidence: float = 0.5
 
 
+RENDER_CONNECTIONS: tuple[Connection, ...] = (
+    ("WRIST", "THUMB_CMC"),
+    ("THUMB_CMC", "THUMB_MCP"),
+    ("THUMB_MCP", "THUMB_IP"),
+    ("THUMB_IP", "THUMB_TIP"),
+    ("WRIST", "INDEX_FINGER_MCP"),
+    ("INDEX_FINGER_MCP", "INDEX_FINGER_PIP"),
+    ("INDEX_FINGER_PIP", "INDEX_FINGER_DIP"),
+    ("INDEX_FINGER_DIP", "INDEX_FINGER_TIP"),
+    ("WRIST", "MIDDLE_FINGER_MCP"),
+    ("MIDDLE_FINGER_MCP", "MIDDLE_FINGER_PIP"),
+    ("MIDDLE_FINGER_PIP", "MIDDLE_FINGER_DIP"),
+    ("MIDDLE_FINGER_DIP", "MIDDLE_FINGER_TIP"),
+    ("WRIST", "RING_FINGER_MCP"),
+    ("RING_FINGER_MCP", "RING_FINGER_PIP"),
+    ("RING_FINGER_PIP", "RING_FINGER_DIP"),
+    ("RING_FINGER_DIP", "RING_FINGER_TIP"),
+    ("WRIST", "PINKY_MCP"),
+    ("PINKY_MCP", "PINKY_PIP"),
+    ("PINKY_PIP", "PINKY_DIP"),
+    ("PINKY_DIP", "PINKY_TIP"),
+    ("INDEX_FINGER_MCP", "MIDDLE_FINGER_MCP"),
+    ("MIDDLE_FINGER_MCP", "RING_FINGER_MCP"),
+    ("RING_FINGER_MCP", "PINKY_MCP"),
+)
+
+
 class HandLandmarkDetector(LandmarkDetector):
     """MediaPipe Tasks hand detector operating in VIDEO mode.
 
@@ -54,6 +82,9 @@ class HandLandmarkDetector(LandmarkDetector):
     """
 
     name = "HandLandmarkDetector"
+    render_connections = RENDER_CONNECTIONS
+    
+    
     _LANDMARK_INDEX_TO_NAME = tuple(HandLandmarks)
 
     def __init__(self, config: HandLandmarkConfig | None = None) -> None:

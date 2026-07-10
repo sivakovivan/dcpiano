@@ -9,6 +9,11 @@ class LandmarkDetector(ABC):
     @abstractmethod
     def name(self) -> str:
         ...
+        
+    @property
+    @abstractmethod
+    def render_connections(self) -> str:
+        ...
 
     def init(self) -> None:
         ...

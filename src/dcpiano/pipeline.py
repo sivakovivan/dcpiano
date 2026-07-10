@@ -9,6 +9,7 @@ from dcpiano.services.config import ConfigService
 from dcpiano.services.landmark import LandmarkService
 from dcpiano.services.calibration import CalibrationService
 from dcpiano.services.video import VideoService
+from dcpiano.services.render import RenderConfig, RenderService
 
 
 def create_output_directory(output_dir):
@@ -61,3 +62,14 @@ class DCPPipeline:
         logger.info(
             f"Generated {len(landmark_frames)} landmark frames."
         )
+        
+        render_service = RenderService(RenderConfig(connections_by_source={detector.name: detector.render_connections for detector in detectors}))
+        rendered_video_path = output_dir / "rendered.mp4"
+        
+        render_service.render_video_landmarks(
+            input_video=input_video,
+            landmark_frames=landmark_frames,
+            output_video=rendered_video_path,
+        )
+        
+        logger.info(f"Rendered video with landmarks saved: {rendered_video_path}")

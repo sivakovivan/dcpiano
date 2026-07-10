@@ -13,7 +13,12 @@ class VideoMetadata:
     
     
 @dataclass
-class VideoFrame:
+class FrameMetadata:
     index: int
     timestamp: float
+    
+    
+@dataclass
+class VideoFrame:
+    metadata: FrameMetadata
     frame: np.ndarray

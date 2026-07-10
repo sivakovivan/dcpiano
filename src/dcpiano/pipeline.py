@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from dcpiano.landmark_detectors.hand import HandLandmarkDetector
 from dcpiano.logger import logger
 
 
@@ -42,3 +43,7 @@ class DCPPipeline:
         keyboard_calibration = CalibrationService.run_manual_keyboard_calibration(calibration_frame, config, output_dir)
     
         logger.info(f"Keyboard calibration result: {keyboard_calibration}")
+        
+        detectors = [HandLandmarkDetector]
+        
+        logger.info(f"Initialized landmark detectors: {[detector.name for detector in detectors]}")

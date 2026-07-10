@@ -566,8 +566,8 @@ class CalibrationService:
 
         cv2.imwrite(str(output_dir / "keyboard_calibration.png"), annotated)
         payload = {
-            "frame_index": int(frame.index),
-            "frame_timestamp": float(frame.timestamp),
+            "frame_index": int(frame.metadata.index),
+            "frame_timestamp": float(frame.metadata.timestamp),
             "calibration": asdict(result),
         }
         (output_dir / "keyboard_calibration.json").write_text(

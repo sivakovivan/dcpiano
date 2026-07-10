@@ -1,6 +1,6 @@
 import cv2
 from pathlib import Path
-from dcpiano.types.video import VideoMetadata, VideoFrame
+from dcpiano.types.video import FrameMetadata, VideoMetadata, VideoFrame
 
 
 class VideoService:
@@ -36,7 +36,7 @@ class VideoService:
                 break
 
             timestamp = index / fps if fps > 0 else 0
-            frames.append(VideoFrame(index=index, timestamp=timestamp, frame=frame))
+            frames.append(VideoFrame(metadata=FrameMetadata(index=index, timestamp=timestamp), frame=frame))
             index += 1
 
         cap.release()

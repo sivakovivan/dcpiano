@@ -64,3 +64,6 @@ profile.json.gz
 # Codex
 .codex/*
 !.codex/hooks.json
+
+# python dist
+**/*.egg-info

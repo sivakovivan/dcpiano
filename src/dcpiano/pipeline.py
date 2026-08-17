@@ -32,6 +32,10 @@ class DCPPipeline:
         config = ConfigService.load_config()
         logger.info(f"Loaded configuration: {config}")
         
+        effective_config_path = output_dir / 'effective_config.yaml'
+        config.save_effective_config(effective_config_path)
+        logger.info(f"Saved effective config: {effective_config_path}")
+        
         video_metadata = VideoService.get_video_metadata(input_video)
         logger.info(f"Input video metadata: {video_metadata}")
         

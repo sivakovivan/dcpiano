@@ -113,7 +113,13 @@ class HandLandmarkDetector(LandmarkDetector):
         self._detector = self._create_detector()
         self._last_timestamp_ms = -1
 
-    def detect(self, frame: VideoFrame) -> dict[str, RawLandmark]:
+    def detect(
+        self,
+        frame: VideoFrame,
+        existing_landmarks: dict[str, RawLandmark] | None = None,
+    ) -> dict[str, RawLandmark]:
+        # ``existing_landmarks`` is accepted for the common detector protocol;
+        # hand detection is the first stage and therefore does not consume it.
         timestamp_ms = self._timestamp_ms(frame)
         rgb_frame = np.ascontiguousarray(frame.frame[..., ::-1])
 

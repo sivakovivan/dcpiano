@@ -23,7 +23,7 @@ class LandmarkDetector(ABC):
         ...
     
     @abstractmethod
-    def detect(self, frame: VideoFrame) -> dict[str, RawLandmark]:
+    def detect(self, frame: VideoFrame, existing_landmarks: dict[str, RawLandmark]) -> dict[str, RawLandmark]:
         ...
 
     @abstractmethod

@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from dcpiano.landmark_detectors.hand import HandLandmarkDetector
+from dcpiano.landmark_detectors.forearm import ForearmLandmarkDetector
 from dcpiano.logger import logger
 
 
@@ -50,8 +51,10 @@ class DCPPipeline:
     
         logger.info(f"Keyboard calibration result: {keyboard_calibration}")
         
+        # based on execution order, ie forearm detector requires hand detector to be run first
         detectors = [
-            HandLandmarkDetector()
+            HandLandmarkDetector(),
+            ForearmLandmarkDetector()
         ]
         
         logger.info(f"Initialized landmark detectors: {[detector.name for detector in detectors]}")

@@ -45,11 +45,12 @@ class DCPPipeline:
         
         calibration_frame = frames[0]
         
-        logger.info("Starting manual calibration process...")
+        if not config.skip_calibration:
+            logger.info("Starting manual calibration process...")
+            
+            keyboard_calibration = CalibrationService.run_manual_keyboard_calibration(calibration_frame, config, output_dir)
         
-        keyboard_calibration = CalibrationService.run_manual_keyboard_calibration(calibration_frame, config, output_dir)
-    
-        logger.info(f"Keyboard calibration result: {keyboard_calibration}")
+            logger.info(f"Keyboard calibration result: {keyboard_calibration}")
         
         # based on execution order, ie forearm detector requires hand detector to be run first
         detectors = [

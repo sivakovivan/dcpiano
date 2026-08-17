@@ -7,6 +7,7 @@ from dataclasses import dataclass, asdict
 class Config:
     keyboard_width_mm: float
     keyboard_height_mm: float
+    skip_calibration: bool = False
     
     def save_effective_config(self, path: Path):
         with open(path, "w") as f:

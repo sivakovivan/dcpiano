@@ -152,15 +152,15 @@ class RenderService:
     ) -> None:
         height, width = image.shape[:2]
 
-        grouped: dict[tuple[str, int], list[RawLandmark]] = defaultdict(list)
-        for landmark in landmark_frame.landmarks:
+        grouped: dict[tuple[str, int], dict[str, RawLandmark]] = defaultdict(dict)
+        for landmark_id, landmark in landmark_frame.landmarks.items():
             if self._is_visible(landmark):
-                grouped[(landmark.source, landmark.instance_id)].append(landmark)
+                grouped[(landmark.source, landmark.instance_id)][landmark_id] = landmark
 
         for (source, _instance_id), landmarks in grouped.items():
             points_by_name = {
                 landmark.name: self._to_pixel(landmark, width, height)
-                for landmark in landmarks
+                for landmark in landmarks.values()
             }
 
             # Lines first, then joints, so points remain visually prominent.
@@ -179,7 +179,7 @@ class RenderService:
                         cv2.LINE_AA,
                     )
 
-            for landmark in landmarks:
+            for landmark in landmarks.values():
                 cv2.circle(
                     image,
                     points_by_name[landmark.name],

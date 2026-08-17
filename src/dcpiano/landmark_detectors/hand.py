@@ -113,7 +113,7 @@ class HandLandmarkDetector(LandmarkDetector):
         self._detector = self._create_detector()
         self._last_timestamp_ms = -1
 
-    def detect(self, frame: VideoFrame) -> list[RawLandmark]:
+    def detect(self, frame: VideoFrame) -> dict[str, RawLandmark]:
         timestamp_ms = self._timestamp_ms(frame)
         rgb_frame = np.ascontiguousarray(frame.frame[..., ::-1])
 
@@ -133,7 +133,7 @@ class HandLandmarkDetector(LandmarkDetector):
         self,
         frames: list[VideoFrame],
         reset: bool = True,
-    ) -> list[list[RawLandmark]]:
+    ) -> list[dict[str, RawLandmark]]:
         """Process consecutive video frames while retaining tracking state."""
         if reset:
             self.reset_video()
@@ -155,12 +155,12 @@ class HandLandmarkDetector(LandmarkDetector):
         self._last_timestamp_ms = timestamp_ms
         return timestamp_ms
 
-    def _convert_results(self, results: object) -> list[RawLandmark]:
+    def _convert_results(self, results: object) -> dict[str, RawLandmark]:
         hand_landmarks = results.hand_landmarks
         if not hand_landmarks:
-            return []
+            return {}
 
-        raw_landmarks: list[RawLandmark] = []
+        raw_landmarks: dict[str, RawLandmark] = {}
         for instance_id, landmarks in enumerate(hand_landmarks):
             side = self._resolve_side(results.handedness, instance_id)
             confidence = self._resolve_confidence(results.handedness, instance_id)
@@ -170,18 +170,20 @@ class HandLandmarkDetector(LandmarkDetector):
                 if landmark_name not in self._landmark_filter:
                     continue
 
-                raw_landmarks.append(
-                    RawLandmark(
-                        name=landmark_name,
-                        source=self.name,
-                        instance_id=instance_id,
-                        side=side,
-                        x=landmark.x,
-                        y=landmark.y,
-                        z=landmark.z,
-                        confidence=confidence,
-                    )
+                raw_landmark = RawLandmark(
+                    name=landmark_name,
+                    source=self.name,
+                    instance_id=instance_id,
+                    side=side,
+                    x=landmark.x,
+                    y=landmark.y,
+                    z=landmark.z,
+                    confidence=confidence,
                 )
+                landmark_id = raw_landmark.generate_landmark_id()
+                if landmark_id in raw_landmarks:
+                    raise ValueError(f"Duplicate raw landmark id: {landmark_id}")
+                raw_landmarks[landmark_id] = raw_landmark
 
         return raw_landmarks
 

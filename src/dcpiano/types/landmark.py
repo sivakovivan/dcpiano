@@ -26,8 +26,15 @@ class RawLandmark:
     
     confidence: float | None = None
 
+    def generate_landmark_id(self) -> str:
+        """Return the stable identifier used to index this raw landmark."""
+        parts = [self.source, self.name]
+        if self.side != Side.UNKNOWN:
+            parts.append(self.side.value)
+        return ":".join(parts)
+
 
 @dataclass
 class LandmarkFrame:
     metadata: FrameMetadata
-    landmarks: list[RawLandmark]
+    landmarks: dict[str, RawLandmark]

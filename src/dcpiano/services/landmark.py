@@ -19,9 +19,14 @@ class LandmarkService:
 
     def generate_landmark_frame(self, frame: VideoFrame) -> LandmarkFrame:
         """Process one frame through every configured detector."""
-        landmarks: list[RawLandmark] = []
+        landmarks: dict[str, RawLandmark] = {}
         for detector in self.detectors:
-            landmarks.extend(detector.detect(frame))
+            detected_landmarks = detector.detect(frame)
+            duplicate_ids = landmarks.keys() & detected_landmarks.keys()
+            if duplicate_ids:
+                duplicate_id = sorted(duplicate_ids)[0]
+                raise ValueError(f"Duplicate raw landmark id: {duplicate_id}")
+            landmarks.update(detected_landmarks)
 
         return LandmarkFrame(metadata=frame.metadata, landmarks=landmarks)
 

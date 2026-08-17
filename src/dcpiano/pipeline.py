@@ -62,6 +62,8 @@ class DCPPipeline:
         
         landmark_service = LandmarkService(detectors)
         
+        logger.info("Starting landmark frame generation...")
+        
         try:
             landmark_frames = landmark_service.generate_landmark_frames(frames, output_dir, reset_detectors=False)
         finally:

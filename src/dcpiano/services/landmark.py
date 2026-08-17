@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import json
 from pathlib import Path
 from enum import StrEnum
@@ -43,17 +44,13 @@ class LandmarkService:
         MediaPipe VIDEO-mode tracking to carry state from one frame to the next.
         """
         self._validate_frame_order(frames)
-
-        frame_count = len(frames)
-
+        
         if reset_detectors:
             [detector.reset_video() for detector in self.detectors]
 
         landmark_frames: list[LandmarkFrame] = []
-        for index, frame in enumerate(frames):
+        for frame in tqdm(frames):
             landmark_frames.append(self.generate_landmark_frame(frame))
-            if index % 100 == 0:
-                print(f"[LandmarkService] Processing frame {index} / {frame_count}")
 
         self.save_landmark_frames(landmark_frames, output_dir)
 

@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "armtrace",
     "mediapipe>=0.10.14",
     "numpy>=2.5.1",
     "opencv-python>=5.0.0.93",
@@ -26,3 +27,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.uv.sources]
+armtrace = { git = "https://github.com/sivakovivan/armtrace" }

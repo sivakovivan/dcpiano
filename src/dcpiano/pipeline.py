@@ -8,6 +8,7 @@ from dcpiano.logger import logger
 
 from dcpiano.services.config import ConfigService
 from dcpiano.services.landmark import LandmarkService
+from dcpiano.services.stream import LandmarkStreamService
 from dcpiano.services.calibration import CalibrationService
 from dcpiano.services.video import VideoService
 from dcpiano.services.render import RenderConfig, RenderService
@@ -71,6 +72,13 @@ class DCPPipeline:
             
         logger.info(
             f"Generated {len(landmark_frames)} landmark frames."
+        )
+
+        landmark_streams = LandmarkStreamService.generate_landmark_streams(
+            landmark_frames, output_dir
+        )
+        logger.info(
+            f"Generated {len(landmark_streams.landmarks)} landmark streams."
         )
         
         render_service = RenderService(RenderConfig(connections_by_source={detector.name: detector.render_connections for detector in detectors}))

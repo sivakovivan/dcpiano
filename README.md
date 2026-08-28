@@ -23,4 +23,4 @@ Download a MediaPipe Hand Landmarker model and save it as `models/hand_landmarke
 
 3. In the calibration window, select the keyboard corners in this order: top-left, top-right, bottom-right, bottom-left. Press Enter to continue.
 
-Results are written to `data/output/sample/`, including `rendered.mp4`, `landmark_frames.json`, keyboard calibration files, and `process.log`. To use different paths, edit the `input_video` and `output_dir` values in `main.py`. Keyboard dimensions can be changed in `config/default.yaml`.
+Results are written to `data/output/sample/`, including `rendered.mp4`, `landmark_frames.json`, `landmark_streams.json`, keyboard calibration files, and `process.log`. `landmark_streams.json` groups observations by stable landmark ID and records an entry for every frame, including explicit missing detections. To use different paths, edit the `input_video` and `output_dir` values in `main.py`. Keyboard dimensions can be changed in `config/default.yaml`.

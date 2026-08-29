@@ -9,6 +9,8 @@ from dcpiano.logger import logger
 from dcpiano.services.config import ConfigService
 from dcpiano.services.landmark import LandmarkService
 from dcpiano.services.stream import LandmarkStreamService
+from dcpiano.services.kinematic import KinematicService
+from dcpiano.kinematics.defaults import default_kinematic_calculators
 from dcpiano.services.calibration import CalibrationService
 from dcpiano.services.video import VideoService
 from dcpiano.services.render import RenderConfig, RenderService
@@ -80,6 +82,12 @@ class DCPPipeline:
         logger.info(
             f"Generated {len(landmark_streams.landmarks)} landmark streams."
         )
+
+        kinematic_service = KinematicService(default_kinematic_calculators())
+        kinematic_frames = kinematic_service.generate_kinematic_frames(
+            landmark_frames, output_dir
+        )
+        logger.info(f"Generated {len(kinematic_frames)} kinematic frames.")
         
         render_service = RenderService(RenderConfig(connections_by_source={detector.name: detector.render_connections for detector in detectors}))
         rendered_video_path = output_dir / "rendered.mp4"

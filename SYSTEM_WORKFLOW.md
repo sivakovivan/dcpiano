@@ -14,7 +14,6 @@ main.py
        HandLandmarkDetector (MediaPipe)
          -> ForearmLandmarkDetector (ArmTrace, using hand landmarks)
   -> save frame-centric landmarks
-  -> build and save continuous landmark streams
   -> read the source video again and render landmark overlays
   -> save rendered.mp4
 ```
@@ -59,11 +58,7 @@ uv run python main.py
    
    All detections are saved to `landmark_frames.json`. This representation is organized by video frame and contains only landmarks that existed in that frame.
 
-6. **Landmark streams**
-   
-   `LandmarkStreamService` transposes the frame-centric data into `landmark_streams.json`. Each stable landmark ID gets one entry for every processed frame. Missing detections are explicit entries with `exists: false`, which makes downstream time-series processing easier.
-
-7. **Rendering**
+6. **Rendering**
    
    `RenderService` opens the source video again, matches detections by frame index, and draws configured detector connections and joints. Left, right, and unknown-side landmarks use different colors; joint size varies with depth. The result is saved as `rendered.mp4` using the `mp4v` codec.
 
@@ -76,7 +71,6 @@ For the default sample run, `data/output/sample/` contains:
 | `process.log` | Timestamped processing log; overwritten at the start of each run |
 | `effective_config.yaml` | Exact configuration used by the run |
 | `landmark_frames.json` | Detected landmarks grouped by frame |
-| `landmark_streams.json` | Continuous timelines grouped by landmark ID |
 | `rendered.mp4` | Source video with hand and forearm overlays |
 | `keyboard_calibration.json` | Corner coordinates; present only when calibration is enabled |
 | `keyboard_calibration.png` | Annotated calibration preview; present only when calibration is enabled |

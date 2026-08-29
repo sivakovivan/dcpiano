@@ -8,7 +8,6 @@ from dcpiano.logger import logger
 
 from dcpiano.services.config import ConfigService
 from dcpiano.services.landmark import LandmarkService
-from dcpiano.services.stream import LandmarkStreamService
 from dcpiano.services.kinematic import KinematicService
 from dcpiano.kinematics.defaults import default_kinematic_calculators
 from dcpiano.services.calibration import CalibrationService
@@ -74,13 +73,6 @@ class DCPPipeline:
             
         logger.info(
             f"Generated {len(landmark_frames)} landmark frames."
-        )
-
-        landmark_streams = LandmarkStreamService.generate_landmark_streams(
-            landmark_frames, output_dir
-        )
-        logger.info(
-            f"Generated {len(landmark_streams.landmarks)} landmark streams."
         )
 
         kinematic_service = KinematicService(default_kinematic_calculators())

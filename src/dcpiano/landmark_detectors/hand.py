@@ -9,6 +9,7 @@ import mediapipe as mp
 import numpy as np
 
 from dcpiano.landmark_detectors.core import LandmarkDetector
+from dcpiano.logger import logger
 from dcpiano.types.render import Connection
 from dcpiano.types.landmark import RawLandmark, Side
 from dcpiano.types.video import VideoFrame
@@ -167,9 +168,10 @@ class HandLandmarkDetector(LandmarkDetector):
             return {}
 
         raw_landmarks: dict[str, RawLandmark] = {}
-        for instance_id, landmarks in enumerate(hand_landmarks):
-            side = self._resolve_side(results.handedness, instance_id)
-            confidence = self._resolve_confidence(results.handedness, instance_id)
+        for side, confidence, instance_id, landmarks in self._select_hand_candidates(
+            hand_landmarks,
+            results.handedness,
+        ):
 
             for landmark_index, landmark in enumerate(landmarks):
                 landmark_name = self._LANDMARK_INDEX_TO_NAME[landmark_index].value
@@ -192,6 +194,52 @@ class HandLandmarkDetector(LandmarkDetector):
                 raw_landmarks[landmark_id] = raw_landmark
 
         return raw_landmarks
+
+    def _select_hand_candidates(
+        self,
+        hand_landmarks: object,
+        handedness: object,
+    ) -> list[tuple[Side, float | None, int, object]]:
+        """Keep at most one complete detected hand for each side.
+
+        MediaPipe can occasionally classify multiple detections as the same side.
+        Stable landmark IDs contain the side but intentionally omit the transient
+        detection index, so retaining both would create duplicate IDs. Resolve the
+        ambiguity before converting individual landmarks, using handedness
+        confidence as the tie-breaker and retaining the first detection on ties.
+        """
+        selected: dict[str, tuple[Side, float | None, int, object]] = {}
+
+        for instance_id, landmarks in enumerate(hand_landmarks):
+            side = self._resolve_side(handedness, instance_id)
+            confidence = self._resolve_confidence(handedness, instance_id)
+            side_key = side.value
+            current = selected.get(side_key)
+
+            if current is None:
+                selected[side_key] = (side, confidence, instance_id, landmarks)
+                continue
+
+            current_confidence = current[1]
+            candidate_score = confidence if confidence is not None else float("-inf")
+            current_score = (
+                current_confidence
+                if current_confidence is not None
+                else float("-inf")
+            )
+            if candidate_score > current_score:
+                selected[side_key] = (side, confidence, instance_id, landmarks)
+
+            kept_instance_id = selected[side_key][2]
+            logger.warning(
+                f"Multiple hands classified as {side.value}; keeping detection "
+                f"{kept_instance_id} and discarding the other candidate."
+            )
+
+        return [
+            candidate
+            for candidate in selected.values()
+        ]
 
     def close(self) -> None:
         self._detector.close()

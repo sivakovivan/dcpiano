@@ -1,3 +1,5 @@
 keyboard_width_mm: 1225.0
 keyboard_height_mm: 150.0
 skip_calibration: True
+tracking_only: False
+create_rendered_video: True

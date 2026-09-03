@@ -8,6 +8,8 @@ class Config:
     keyboard_width_mm: float
     keyboard_height_mm: float
     skip_calibration: bool = False
+    tracking_only: bool = False
+    create_rendered_video: bool = True
     
     def save_effective_config(self, path: Path):
         with open(path, "w") as f:

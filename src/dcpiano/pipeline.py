@@ -47,7 +47,7 @@ class DCPPipeline:
         
         calibration_frame = frames[0]
         
-        if not config.skip_calibration:
+        if not config.tracking_only and not config.skip_calibration:
             logger.info("Starting manual calibration process...")
             
             keyboard_calibration = CalibrationService.run_manual_keyboard_calibration(calibration_frame, config, output_dir)
@@ -75,19 +75,25 @@ class DCPPipeline:
             f"Generated {len(landmark_frames)} landmark frames."
         )
 
-        kinematic_service = KinematicService(default_kinematic_calculators())
-        kinematic_frames = kinematic_service.generate_kinematic_frames(
-            landmark_frames, output_dir
-        )
-        logger.info(f"Generated {len(kinematic_frames)} kinematic frames.")
-        
-        render_service = RenderService(RenderConfig(connections_by_source={detector.name: detector.render_connections for detector in detectors}))
-        rendered_video_path = output_dir / "rendered.mp4"
-        
-        render_service.render_video_landmarks(
-            input_video=input_video,
-            landmark_frames=landmark_frames,
-            output_video=rendered_video_path,
-        )
-        
-        logger.info(f"Rendered video with landmarks saved: {rendered_video_path}")
+        if not config.tracking_only:
+            kinematic_service = KinematicService(default_kinematic_calculators())
+            kinematic_frames = kinematic_service.generate_kinematic_frames(
+                landmark_frames, output_dir
+            )
+            logger.info(f"Generated {len(kinematic_frames)} kinematic frames.")
+        else:
+            logger.info("Tracking-only mode enabled; skipping calibration and kinematics.")
+
+        if config.create_rendered_video:
+            render_service = RenderService(RenderConfig(connections_by_source={detector.name: detector.render_connections for detector in detectors}))
+            rendered_video_path = output_dir / "rendered.mp4"
+
+            render_service.render_video_landmarks(
+                input_video=input_video,
+                landmark_frames=landmark_frames,
+                output_video=rendered_video_path,
+            )
+
+            logger.info(f"Rendered video with landmarks saved: {rendered_video_path}")
+        else:
+            logger.info("Rendered video creation disabled by configuration.")

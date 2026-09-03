@@ -23,4 +23,6 @@ Download a MediaPipe Hand Landmarker model and save it as `models/hand_landmarke
 
 3. In the calibration window, select the keyboard corners in this order: top-left, top-right, bottom-right, bottom-left. Press Enter to continue.
 
-Results are written to `data/output/sample/`, including `rendered.mp4`, `landmark_frames.json`, `kinematic_frames.json`, keyboard calibration files, and `process.log`. `kinematic_frames.json` contains the registered position, derivative, axis, plane, joint-angle, and keyboard-height metrics for each frame; unavailable values are explicit `null` entries. To use different paths, edit the `input_video` and `output_dir` values in `main.py`. Keyboard dimensions can be changed in `config/default.yaml`.
+Results are written to `data/output/sample/`, including `rendered.mp4`, `landmark_frames.json`, `kinematic_frames.json`, keyboard calibration files, and `process.log`. `kinematic_frames.json` contains the registered position, derivative, axis, plane, joint-angle, and keyboard-height metrics for each frame; unavailable values are explicit `null` entries. To use different paths, edit the `input_video` and `output_dir` values in `main.py`.
+
+Pipeline behavior is configured in `config/default.yaml`. Set `tracking_only: true` to run landmark tracking without calibration or kinematic calculation. Set `create_rendered_video: false` to skip creating `rendered.mp4`; this setting also applies in tracking-only mode. Keyboard dimensions can be changed in the same file.
